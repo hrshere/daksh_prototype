@@ -1,4 +1,6 @@
 from rest_framework import viewsets, filters, status
+import stripe
+from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from rest_framework.decorators import action
@@ -94,4 +96,19 @@ class CartViewSet(viewsets.ViewSet):
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+
+stripe.api_key = "sk_test_51Pvco22NLuRsyXo47F1Q60xsGL5YVf1LaIDvFOYm1FflbaPPamWAg43LPIZwcOXIpgEdnlDmp5g40Kb1AxCMrubz00VptJSWBL"
+
+@api_view(['POST'])
+def create_payment_intent(request):
+    try:
+        data = request.data
+        amount = data.get('amount')#cents
+        intent = stripe.PaymentIntent.create(
+            amount=amount,
+            currency='usd'
+        )
+        return Response({'client_secret' : intent['client_secret']}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 

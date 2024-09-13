@@ -15,15 +15,23 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Support env variables from .env file if defined
+import os
+from dotenv import load_dotenv
+env_path = load_dotenv(os.path.join(BASE_DIR, '.env'))
+load_dotenv(env_path)
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-x=v04(x$v)1rdja5u742kw6271#x8@hxf#av!ia3d#t5s68e0q"
+# SECRET_KEY = "django-insecure-x=v04(x$v)1rdja5u742kw6271#x8@hxf#av!ia3d#t5s68e0q"
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-x=v04(x$v)1rdja5u742kw6271#x8@hxf#av!ia3d#t5s68e0q')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
 
 ALLOWED_HOSTS = []
 
@@ -138,7 +146,7 @@ import os
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-ALLOWED_HOSTS = ['192.168.1.24','127.0.0.1','192.168.1.84','192.168.1.19','192.168.1.82','192.168.1.17','192.168.0.59','192.168.1.59']
+ALLOWED_HOSTS = ['192.168.1.24','127.0.0.1','192.168.1.84','192.168.1.19','192.168.1.82','192.168.1.17','192.168.0.59','192.168.1.59','192.168.1.38']
 
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
@@ -152,5 +160,5 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'hrs21112001@gmail.com'  # Your Gmail address
-EMAIL_HOST_PASSWORD = ''#need to secure it
+EMAIL_HOST_PASSWORD = 'nsme frmy woho yisu'#need to secure it
 
