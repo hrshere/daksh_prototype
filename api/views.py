@@ -1,4 +1,6 @@
 from rest_framework import viewsets, filters, status
+from firebase_admin import messaging, credentials
+import firebase_admin
 import stripe
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
@@ -111,4 +113,38 @@ def create_payment_intent(request):
         return Response({'client_secret' : intent['client_secret']}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['POST'])
+def send_push_notification(request):
+    if not firebase_admin._apps:
+        cred = credentials.Certificate("C:/Users/DELL/Downloads/daksh-ptype-firebase-adminsdk-4kdvg-c62907c850.json")
+        firebase_admin.initialize_app(cred)
+
+    try:
+        data = request.data
+        registration_token = data.get('token')
+        # This registration token comes from the client FCM SDKs.
+        # messaging = firebase_admin.initialize_app()
+        # registration_token = 'YOUR_REGISTRATION_TOKEN'
+        print(registration_token)
+
+# See documentation on defining a message payload.
+        message = messaging.Message(
+        notification=messaging.Notification(title='title', body='body'),
+        data={
+        'score': '850',
+        'time': '2:45',
+        },
+        token=registration_token,
+        )
+
+        # Send a message to the device corresponding to the provided
+        # registration token.
+        response = messaging.send(message)
+        return Response(response,status=200)
+        # Response is a message ID string.
+        print('Successfully sent message:', response)
+
+    except Exception as e:
+        return Response(str(e),status=400)
 
