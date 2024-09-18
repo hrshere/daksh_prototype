@@ -1,4 +1,8 @@
 from rest_framework import viewsets, filters, status
+from firebase_admin import messaging, credentials
+import firebase_admin
+import stripe
+from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from rest_framework.decorators import action
@@ -95,3 +99,82 @@ class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
 
+stripe.api_key = "sk_test_51Pvco22NLuRsyXo47F1Q60xsGL5YVf1LaIDvFOYm1FflbaPPamWAg43LPIZwcOXIpgEdnlDmp5g40Kb1AxCMrubz00VptJSWBL"
+
+@api_view(['POST'])
+def create_payment_intent(request):
+    try:
+        data = request.data
+        amount = data.get('amount')#cents
+        intent = stripe.PaymentIntent.create(
+            amount=amount,
+            currency='usd'
+        )
+        return Response({'client_secret' : intent['client_secret']}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+
+def send_product_notification_to_all_users(product_name):
+    if not firebase_admin._apps:
+        cred = credentials.Certificate("C:/Users/DELL/Downloads/daksh-ptype-firebase-adminsdk-4kdvg-c62907c850.json")
+        firebase_admin.initialize_app(cred)
+
+    try:
+        
+        # This registration token comes from the client FCM SDKs.
+        # messaging = firebase_admin.initialize_app()
+        # registration_token = 'YOUR_REGISTRATION_TOKEN'
+
+# See documentation on defining a message payload.
+        message = messaging.Message(
+        notification=messaging.Notification(title=product_name, body="New Product Available!"),
+        data={
+        'score': '850',
+        'time': '2:45',
+        },
+        token="d3K8Yzmgn09aoOkOQFUn61:APA91bHorf6HyEefpTm97-L_SqD6JOJucFCa2plTV28MQvVgvNNdpMpZ9fMgjxphstPJduwhEPCBJE1bfCj6p7m3Ev5vL_YaY8Zy_nG1qYTVKZ5jAExMVqXR8IFrORPKEzXW5KfwtBgk",
+        )
+
+        # Send a message to the device corresponding to the provided
+        # registration token.
+        response = messaging.send(message)
+        return response
+
+    except Exception as e:
+        print(str(e))
+        return None
+
+@api_view(['POST'])
+def send_push_notification(request):
+    if not firebase_admin._apps:
+        cred = credentials.Certificate("C:/Users/DELL/Downloads/daksh-ptype-firebase-adminsdk-4kdvg-c62907c850.json")
+        firebase_admin.initialize_app(cred)
+
+    try:
+        data = request.data
+        registration_token = data.get('token')
+        # This registration token comes from the client FCM SDKs.
+        # messaging = firebase_admin.initialize_app()
+        # registration_token = 'YOUR_REGISTRATION_TOKEN'
+        print(registration_token)
+
+# See documentation on defining a message payload.
+        message = messaging.Message(
+        notification=messaging.Notification(title='title', body='body'),
+        data={
+        'score': '850',
+        'time': '2:45',
+        },
+        token=registration_token,
+        )
+
+        # Send a message to the device corresponding to the provided
+        # registration token.
+        response = messaging.send(message)
+        return Response(response,status=200)
+        # Response is a message ID string.
+        print('Successfully sent message:', response)
+
+    except Exception as e:
+        return Response(str(e),status=400)
