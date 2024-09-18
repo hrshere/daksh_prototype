@@ -114,6 +114,37 @@ def create_payment_intent(request):
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
+
+def send_product_notification_to_all_users(product_name):
+    if not firebase_admin._apps:
+        cred = credentials.Certificate("C:/Users/DELL/Downloads/daksh-ptype-firebase-adminsdk-4kdvg-c62907c850.json")
+        firebase_admin.initialize_app(cred)
+
+    try:
+        
+        # This registration token comes from the client FCM SDKs.
+        # messaging = firebase_admin.initialize_app()
+        # registration_token = 'YOUR_REGISTRATION_TOKEN'
+
+# See documentation on defining a message payload.
+        message = messaging.Message(
+        notification=messaging.Notification(title=product_name, body="New Product Available!"),
+        data={
+        'score': '850',
+        'time': '2:45',
+        },
+        token="d3K8Yzmgn09aoOkOQFUn61:APA91bHorf6HyEefpTm97-L_SqD6JOJucFCa2plTV28MQvVgvNNdpMpZ9fMgjxphstPJduwhEPCBJE1bfCj6p7m3Ev5vL_YaY8Zy_nG1qYTVKZ5jAExMVqXR8IFrORPKEzXW5KfwtBgk",
+        )
+
+        # Send a message to the device corresponding to the provided
+        # registration token.
+        response = messaging.send(message)
+        return response
+
+    except Exception as e:
+        print(str(e))
+        return None
+
 @api_view(['POST'])
 def send_push_notification(request):
     if not firebase_admin._apps:
@@ -147,4 +178,3 @@ def send_push_notification(request):
 
     except Exception as e:
         return Response(str(e),status=400)
-
